@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Marimo-quarto - Parafac normalisation</title>
+<title>Marimo-quarto - Non-linear normalisation</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -75,7 +75,7 @@ ul.task-list li input[type="checkbox"] {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&amp;family=Lora&amp;family=PT+Sans:wght@400;700&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
-<meta property="og:title" content="Marimo-quarto - Parafac normalisation">
+<meta property="og:title" content="Marimo-quarto - Non-linear normalisation">
 <meta property="og:description" content="Marimo quarto test">
 <meta property="og:image" content="https://AlexandreDabySeesaram.github.io/parafac-normalisation/avatar.jpg">
 <meta property="og:site_name" content="Marimo-quarto">
@@ -153,7 +153,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Parafac normalisation</h1>
+<h1 class="title">Non-linear normalisation</h1>
 </div>
 
 
@@ -170,16 +170,15 @@ window.Quarto = {
 </header>
 
 
-<section id="non-linear-normalisation" class="level1">
-<h1>Non-linear normalisation</h1>
 <p>This notebook shows how a tensor decomposition can help unfold hidden parametric dependency in order to remove their effect and study other dependencies cleaned from the unwanted effects.</p>
-<section id="exemple" class="level2">
-<h2 class="anchored" data-anchor-id="exemple">Exemple</h2>
-<p>Here ww study <span class="math inline">\(f\left(x,y,z\right) = \left(x^2 + y^2 \right) \times z^2\)</span>. We want to study the dependency of <span class="math inline">\(x\)</span> w.r.t <span class="math inline">\(y\)</span> without being polluted by the effect of <span class="math inline">\(z\)</span>.</p>
+<section id="exemple" class="level3">
+<h3 class="anchored" data-anchor-id="exemple">Exemple</h3>
+<p>Here we study <span class="math inline">\(f\left(x,y,z\right) = \left(x^2 + y^2 \right) \times z^2\)</span>. We want to study the dependency of <span class="math inline">\(x\)</span> w.r.t <span class="math inline">\(y\)</span> without being polluted by the effect of <span class="math inline">\(z\)</span>.</p>
 <p>To do so we perform a parafac decompoition :</p>
 <p><span class="math inline">\(f\left(x,y,z\right) = \sum\limits_{i=1}^2 \lambda_i^x\left(x\right)\lambda_i^y\left(y\right)\lambda_i^z\left(z\right)\)</span></p>
 <p>and from there we compute a non-linearly normalised function <span class="math inline">\(\tilde{f}\)</span> where the effect of <span class="math inline">\(z\)</span> is removed as</p>
 <p><span class="math inline">\(\tilde{f}\left(x,y\right) = \sum\limits_{i=1}^2 \lambda_i^x\left(x\right)\lambda_i^y\left(y\right)\underbrace{\tilde{\lambda}_i^z\left(z\right)}_{=1}\)</span></p>
+</section>
 <section id="parafac-decomposition" class="level3">
 <h3 class="anchored" data-anchor-id="parafac-decomposition">Parafac decomposition</h3>
 <marimo-island data-app-id="main" data-cell-id="Hbol" data-reactive="true">
@@ -195,7 +194,7 @@ window.Quarto = {
     <marimo-cell-output>
     <marimo-mime-renderer data-mime="&quot;application/vnd.marimo+error&quot;" data-data="[{&quot;type&quot;:&quot;exception&quot;,&quot;msg&quot;:&quot;An ancestor raised an exception (ModuleNotFoundError): &quot;,&quot;exception_type&quot;:&quot;Ancestor raised&quot;,&quot;raising_cell&quot;:&quot;Hbol&quot;}]"></marimo-mime-renderer>
     </marimo-cell-output>
-    <marimo-cell-code hidden="">%23%20z_slider%20%3D%20mo.ui.slider(%0A%23%20%20%20%20%20start%3D0%2C%20%0A%23%20%20%20%20%20stop%3Dnz%20-%201%2C%20%0A%23%20%20%20%20%20step%3D1%2C%20%0A%23%20%20%20%20%20value%3Dnz%20%2F%2F%202%2C%20%0A%23%20%20%20%20%20label%3D%22Z-Slice%20Index%22%2C%20%0A%23%20)%0A%0A%0Az_slider%20%3D%20mo.ui.slider(0%2C%20nz%20-%201%2C%201%2C%20label%3D%22z-slice%20Index%22%2C%20show_value%3DTrue%2C%20include_input%3DTrue%2C%20value%20%3D%20nz%20%2F%2F%202)%0A%0Az_slider</marimo-cell-code>
+    <marimo-cell-code hidden="">%23%20z_slider%20%3D%20mo.ui.slider(%0A%23%20%20%20%20%20start%3D0%2C%20%0A%23%20%20%20%20%20stop%3Dnz%20-%201%2C%20%0A%23%20%20%20%20%20step%3D1%2C%20%0A%23%20%20%20%20%20value%3Dnz%20%2F%2F%202%2C%20%0A%23%20%20%20%20%20label%3D%22Z-Slice%20Index%22%2C%20%0A%23%20)%0A%0A%0Az_slider%20%3D%20mo.ui.slider(0%2C%20nz%20-%201%2C%201%2C%20label%3D%22z-slice%20Index%22%2C%20show_value%3DTrue%2C%20include_input%3DTrue%2C%20orientation%20%3D%20%22vertical%22%2C%20value%20%3D%20nz%20%2F%2F%202)%0A%0Az_slider</marimo-cell-code>
 </marimo-island>
 <marimo-island data-app-id="main" data-cell-id="vblA" data-reactive="true">
     <marimo-cell-output>
@@ -205,8 +204,6 @@ window.Quarto = {
 </marimo-island>
 
 
-</section>
-</section>
 </section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
