@@ -1,0 +1,27 @@
+---
+title: Marimo-quarto
+toc: false
+about:
+  template: marquee
+  links:
+    - icon: github
+      text: Github
+      href: https://github.com/AlexandreDabySeesaram/marimo-quarto
+format:
+  html:
+    page-layout: full
+---
+
+## marimo scientific notebooks
+
+
+## Example of marimo in quarto 
+
+Here you can run python directly within your browser thanks to WASM to compute the salary of french civil servant depending on the "indice majoré" (IM). A big thank you to the awesome pluggin [quarto-marimo](https://github.com/marimo-team/quarto-marimo) enabling marimo to natively within quarto
+
+
+here you'll find 
+
+* An [parafac-normalisation](parafac.qmd)
+
+

@@ -1,0 +1,237 @@
+---
+title: Parafac normalisation 
+filters:
+    - marimo-team/marimo
+    # marimo-version: 0.14.17
+toc: false
+format:
+  html:
+    page-layout: full
+---
+
+# Non-linear normalisation
+
+This notebook shows how a tensor decomposition can help unfold hidden parametric dependency in order to remove their effect and study other dependencies cleaned from the unwanted effects.
+
+## Exemple
+
+Here ww study $f\left(x,y,z\right) = \left(x^2 + y^2 \right) \times z^2$. We want to study the dependency of $x$ w.r.t $y$ without being polluted by the effect of $z$.
+
+To do so we perform a parafac decompoition : 
+
+$f\left(x,y,z\right) = \sum\limits_{i=1}^2 \lambda_i^x\left(x\right)\lambda_i^y\left(y\right)\lambda_i^z\left(z\right)$
+
+and from there we compute a non-linearly normalised function $\tilde{f}$ where the effect of $z$ is removed as
+
+$\tilde{f}\left(x,y\right) = \sum\limits_{i=1}^2 \lambda_i^x\left(x\right)\lambda_i^y\left(y\right)\underbrace{\tilde{\lambda}_i^z\left(z\right)}_{=1}$
+
+### Parafac decomposition
+
+
+
+
+```python {.marimo}
+
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorly as tl
+from tensorly.decomposition import parafac
+from tensorly.cp_tensor import cp_normalize
+
+nx, ny, nz = 60, 60, 40
+x = np.linspace(-2, 2, nx)
+y = np.linspace(-2, 2, ny)
+z = np.linspace(1, 2, nz)
+
+
+X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
+
+# f(x,y,z) = exp(-(x^2 + y^2)) * cos(z) + (x*y) * sin(z)
+# data = np.exp(-(X**2 + Y**2)) * np.cos(Z) + (X * Y) * np.sin(Z)
+#data = (X**2 + Y**2) * np.cos(Z)
+data = (X**2 + Y**2) * Z**2
+
+
+
+print(f"shape of data is {data.shape}")
+
+rank = 2
+weights, modes  = parafac(data, rank=rank, init='svd')
+
+cp_tensor = cp_normalize((weights, modes))
+weights, modes = cp_tensor
+
+
+mode_x, mode_y, mode_z = modes
+#normalised_z = np.ones_like(mode_z)
+#breakpoint()
+normalised_z = np.sign(mode_z) # to keep the sign
+normalised_tensor = tl.cp_to_tensor((weights, [mode_x, mode_y, normalised_z]))
+data_recon_debug = tl.cp_to_tensor((weights, [mode_x, mode_y, mode_z]))
+
+# # plot the modes
+# fig, axes = plt.subplots(1, 3, figsize=(10, 4))
+
+# # Plot X-modes (modes[0])
+# axes[0].plot(x, modes[0][:, 0], label='Comp 1 ')
+# axes[0].plot(x, modes[0][:, 1], label='Comp 2 ')
+# axes[0].set_title("X-Axis Modes")
+# axes[0].legend()
+
+# # Plot Y-modes (modes[1])
+# axes[1].plot(y, modes[1][:, 0], label='Comp 1 ')
+# axes[1].plot(y, modes[1][:, 1], label='Comp 2 ')
+# axes[1].set_title("Y-Axis Modes")
+# axes[1].legend()
+
+# # Plo2 Z-modes (modes[2])
+# axes[2].plot(z, modes[2][:, 0], label='Comp 1 ')
+# axes[2].plot(z, modes[2][:, 1], label='Comp 2 ')
+# axes[2].set_title("Z-Axis Modes")
+# axes[2].legend()
+# plt.show()
+
+import marimo as mo
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+
+# Create the subplot structure: 1 row, 3 columns
+fig = make_subplots(
+    rows=1, cols=3, 
+    subplot_titles=("X-Axis Modes", "Y-Axis Modes", "Z-Axis Modes")
+)
+
+# Define a helper list to map data to subplots
+# (x_data, mode_data, column_index)
+plot_configs = [
+    (x, modes[0], 1),
+    (y, modes[1], 2),
+    (z, modes[2], 3)
+]
+
+for x_vals, mode_vals, col in plot_configs:
+    # Plot Component 1
+    fig.add_trace(
+        go.Scatter(x=x_vals, y=mode_vals[:, 0], name=f'Mode 1', mode='lines'),
+        row=1, col=col
+    )
+    # Plot Component 2
+    fig.add_trace(
+        go.Scatter(x=x_vals, y=mode_vals[:, 1], name=f'Mode 2', mode='lines'),
+        row=1, col=col
+    )
+
+# Update layout for sizing and legend behavior
+fig.update_layout(
+    height=400, 
+    width=1000, 
+    template="plotly_white",
+    showlegend=True
+)
+
+fig.show()
+
+
+
+```
+
+
+### Plotting the difference between normalised and original data
+
+```python {.marimo}
+
+# z_slider = mo.ui.slider(
+#     start=0, 
+#     stop=nz - 1, 
+#     step=1, 
+#     value=nz // 2, 
+#     label="Z-Slice Index", 
+# )
+
+
+z_slider = mo.ui.slider(0, nz - 1, 1, label="z-slice Index", show_value=True, include_input=True, value = nz // 2)
+
+# z_slider
+```
+
+
+
+
+```python {.marimo}
+
+def render_3d_slices(z_idx):
+    
+    v_min = min(data_recon_debug.min(), normalised_tensor.min())
+    v_max = max(data_recon_debug.max(), normalised_tensor.max())
+
+    v_max_recon = data_recon_debug.max()
+    v_min_recon = data_recon_debug.min()
+    
+    v_max_normalised = normalised_tensor.max()
+    v_min_normalised = normalised_tensor.min()
+    
+    slice_orig = data_recon_debug[:, :, z_idx]
+    slice_clean = normalised_tensor[:, :, z_idx]
+
+    print(f"mean slice_orig : {slice_orig.mean()}")
+    print(f"mean slice_clean : {slice_clean.mean()}")
+    
+    print(f"v_max_recon : {v_max_recon}")
+    print(f"v_min_recon : {v_min_recon}")
+    print(f"v_max_normalised : {v_max_normalised}")
+    print(f"v_min_normalised : {v_min_normalised}")
+    
+
+    plane_z = np.full(slice_orig.shape, z_idx)
+    fig_3 = make_subplots(
+        rows=1, cols=2,
+        specs=[[{'type': 'surface'}, {'type': 'surface'}]],
+        subplot_titles=("Original slice ", "Normalised slice ")
+    )
+
+ 
+    fig_3.add_trace(
+        go.Surface(
+            z=plane_z,              
+            surfacecolor=slice_orig, 
+            colorscale='Viridis',
+            cmin=v_min_recon, cmax=v_max_recon,
+            # cmin=0, cmax=10,
+            showscale=False
+        ),
+        row=1, col=1
+    )
+
+ 
+    fig_3.add_trace(
+        go.Surface(
+            z=plane_z,              
+            surfacecolor=slice_clean, 
+            colorscale='Viridis',
+            cmin=v_min_normalised, cmax=v_max_normalised,
+            colorbar_title="Value"
+        ),
+        row=1, col=2
+    )
+
+
+    fig_3.update_layout(
+        height=700,
+        width=1200,
+        scene=dict(zaxis=dict(range=[0, nz])), 
+        scene2=dict(zaxis=dict(range=[0, nz])),
+        margin=dict(l=0, r=0, b=0, t=40)
+    )
+
+    return fig_3
+
+
+mo.vstack([
+    z_slider,
+    render_3d_slices(z_slider.value)
+])
+
+
+```
+
