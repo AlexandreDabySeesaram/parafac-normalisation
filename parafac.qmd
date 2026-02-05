@@ -7,6 +7,8 @@ toc: false
 format:
   html:
     page-layout: full
+    code-fold: true
+    code-summary: "Show the code"
 ---
 
 # Non-linear normalisation
@@ -31,6 +33,7 @@ $\tilde{f}\left(x,y\right) = \sum\limits_{i=1}^2 \lambda_i^x\left(x\right)\lambd
 
 
 ```python {.marimo}
+#| code-fold: true
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -130,9 +133,9 @@ fig.update_layout(
     showlegend=True
 )
 
-fig.show()
+# fig.show()
 
-
+mo.ui.plotly(fig)
 
 ```
 
@@ -152,7 +155,7 @@ fig.show()
 
 z_slider = mo.ui.slider(0, nz - 1, 1, label="z-slice Index", show_value=True, include_input=True, value = nz // 2)
 
-# z_slider
+z_slider
 ```
 
 
@@ -227,10 +230,13 @@ def render_3d_slices(z_idx):
     return fig_3
 
 
-mo.vstack([
-    z_slider,
-    render_3d_slices(z_slider.value)
-])
+mo.ui.plotly(render_3d_slices(z_slider.value))
+
+
+# mo.vstack([
+#     z_slider,
+#     render_3d_slices(z_slider.value)
+# ])
 
 
 ```
